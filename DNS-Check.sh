@@ -28,7 +28,7 @@ Forward_Reverse_record_check () {
 
   mkfifo /tmp/mypipe 
 
-  printf "Forward DNS ${dns_server}\t===>\t${dns_IP}\n"
+  printf "Forward DNS: ${dns_server}\t===>\t${dns_IP}\n"
   ssh -o StrictHostKeyChecking=no $target_server "dig $dns_server +noall +answer" | awk '{print $NF}' > /tmp/mypipe &
 
   while IFS= read return_ip
@@ -50,7 +50,7 @@ Forward_Reverse_record_check () {
 
   #mkfifo /tmp/mypipe 
 
-  printf "Reverse DNS ${dns_IP}\t===>\t${dns_server}\n"
+  printf "Reverse DNS: ${dns_IP}\t===>\t${dns_server}\n"
   ssh -o StrictHostKeyChecking=no $1 "dig -x $3 +noall +answer" | awk '{print $NF}' > /tmp/mypipe &
 
   while IFS= read return_host
