@@ -9,7 +9,7 @@ The script have 2 paramter
 
 1st paramter is the file including the specified host list. 
 
-Sample file:
+Sample input file:
 ```
 [root@helper pre-check]# cat server_list 
 192.168.122.29
@@ -18,13 +18,17 @@ Sample file:
 
 2nd parameter is the file including the hostname and IP in each line. This script uses `dig` commnad to verify the DNS forward and reserver resolving.
 
-Sample file:
+Sample input file:
 ```
 [root@helper pre-check]# cat dns-check-list 
-api-int.ocp4.example.com    192.168.9.5
-graphic.example.com	192.168.9.201
-helper.example.com    192.168.9.5
+api-int.ocp4.example.com	192.168.9.5
+graphic.example.com		192.168.9.201
+helper.example.com		192.168.9.5
 ```
+
+**Prerequisite**
+
+- script has passwordless ssh access to the server in file server_list.
 
 
 
