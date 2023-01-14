@@ -6,6 +6,12 @@
 # cat ./server_list 
 # helper.example.com	192.168.9.5
 
+ColorR='\033[0;31m' # red (fail)
+ColorB='\033[0;34m' # blue (info)
+ColorC='\033[0;36m' # cyan (header)
+ColorY='\033[0;33m' # yellow/orange (warning)
+ColorG='\033[0;32m' # green (success)
+ColorN='\033[0m' # Normal (reset)
 
 dns_record_check () {
  
@@ -14,35 +20,38 @@ dns_record_check () {
   local dns_IP=$3
   local forward_dns=false
   local reverse_dns=false
-  
+  local ssh_cmd=''
+
   mkfifo /tmp/mypipe 
 
+  printf "Forward DNS ${dns_server}\t===>\t${dns_IP}\n"
   ssh -o StrictHostKeyChecking=no $target_server "dig $dns_server +noall +answer" | awk '{print $NF}' > /tmp/mypipe &
 
-  while IFS= read dns_ip
+  while IFS= read return_ip
   do
-    if [ ${dns_ip} == $dns_IP ]
+    if [ ${return_ip} == $dns_IP ]
       then
         export forward_dns=true
     fi
   done < /tmp/mypipe
 
-  rm -f /tmp/mypipe
+  #rm -f /tmp/mypipe
 
   if ${forward_dns}
     then
-      echo "Success: Forward DNS works for host $dns_server on server $target_server"
+      printf "Result: ${ColorG}Success\n${ColorN}"
     else
-      echo "Fail   : Forward DNS fails for host $dns_server on server $target_server"
+      printf "Result: ${ColorR}Failure\n${ColorN}"
   fi
 
-  mkfifo /tmp/mypipe 
+  #mkfifo /tmp/mypipe 
 
+  printf "Reverse DNS ${dns_IP}\t===>\t${dns_server}\n"
   ssh -o StrictHostKeyChecking=no $1 "dig -x $3 +noall +answer" | awk '{print $NF}' > /tmp/mypipe &
 
-  while IFS= read dns_host
+  while IFS= read return_host
   do
-    if [ ${dns_host} == $2. ]
+    if [ ${return_host} == $2. ]
       then
         reverse_dns=true
     fi
@@ -52,9 +61,9 @@ dns_record_check () {
 
   if ${reverse_dns}
     then
-      echo "Success: Reverse DNS works for IP $dns_IP on server $target_server"
+      printf "Result: ${ColorG}Success\n${ColorN}"
     else
-      echo "Fail   : Reverse DNS fails for IP $dns_IP on server $target_server"
+      printf "Result: ${ColorR}Failure\n${ColorN}"
   fi
 
   echo
@@ -62,24 +71,38 @@ dns_record_check () {
 
 remote_dns_record_check () {
   
-#  cat $1 |\
-  while read -u10 target_host ip
+  local target_host=$1
+
+  while read -u10 dns_host dns_ip
   do
-    if [ ! -z ${ip} ] && [ ! -z ${target_host} ]
+    if [ ! -z ${dns_host} ] && [ ! -z ${dns_ip} ]
       then
-        dns_record_check $2 ${target_host} ${ip}
+        #echo "dns_record_check ${target_host} ${dns_host} ${dns_ip}"
+
+        dns_record_check ${target_host} ${dns_host} ${dns_ip}
+      else
+	printf "${ColorR}Please ensure input data in file (${dns_list}) have both hostname(${dns_host}) and ip(${dns_ip}).\n${ColorN}" 
     fi
-  done 10< $1
+  done 10< ${dns_list}
 }
 
 # Main
 server_list=$1
+dns_list=$2
 
-#cat ${server_list} |\
-while read -u12 host remote_ip
+while read -u12 target_host
 do
-  if [ ! -z ${remote_ip} ] && [ ! -z ${host} ]
+  if [ ! -z ${target_host} ]
     then
-      remote_dns_record_check ${server_list} ${remote_ip}
+      remote_ssh="ssh -o StrictHostKeyChecking=no $target_host date >/dev/null"
+      ${remote_ssh}
+      if [ $? -eq 0 ] 
+        then
+          printf "${ColorC}\nDNS Verification on ${target_host} >>>>>>\n${ColorN}" 
+          remote_dns_record_check ${target_host}
+	else
+          printf "${ColorR}Failed to execute \"${remote_ssh}\"\n${ColorN}" 
+          printf "${ColorR}Please ensure passwordless ssh remote access from local server to ${target_host}.\n${ColorN}" 
+      fi
   fi
 done 12< ${server_list}
