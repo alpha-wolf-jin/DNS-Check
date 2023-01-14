@@ -91,7 +91,9 @@ remote_dns_record_check () {
 # Main
 
 main () {
-
+ 
+  [ ! -f $server_list ] && { printf "${ColorR}Error: $server_list file not found\n${ColorN}"; exit 99; }
+  [ ! -f $dns_list ] && { printf "${ColorR}Error: $dns_list file not found\n${ColorN}"; exit 99; }
   while read -u12 target_host
   do
     if [ ! -z ${target_host} ]

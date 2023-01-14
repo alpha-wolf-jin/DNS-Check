@@ -35,4 +35,4 @@ helper.example.com		192.168.9.5
 
 **Sample output**
 
-
+![Sample_output](images/pre-check-DNS-01.png)
