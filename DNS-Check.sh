@@ -6,12 +6,16 @@
 # cat ./server_list 
 # helper.example.com	192.168.9.5
 
+server_list=$1
+dns_list=$2
+
 ColorR='\033[0;31m' # red (fail)
 ColorB='\033[0;34m' # blue (info)
 ColorC='\033[0;36m' # cyan (header)
 ColorY='\033[0;33m' # yellow/orange (warning)
 ColorG='\033[0;32m' # green (success)
 ColorN='\033[0m' # Normal (reset)
+
 
 dns_record_check () {
  
@@ -87,22 +91,25 @@ remote_dns_record_check () {
 }
 
 # Main
-server_list=$1
-dns_list=$2
 
-while read -u12 target_host
-do
-  if [ ! -z ${target_host} ]
-    then
-      remote_ssh="ssh -o StrictHostKeyChecking=no $target_host date >/dev/null"
-      ${remote_ssh}
-      if [ $? -eq 0 ] 
-        then
-          printf "${ColorC}\nDNS Verification on ${target_host} >>>>>>\n${ColorN}" 
-          remote_dns_record_check ${target_host}
-	else
-          printf "${ColorR}Failed to execute \"${remote_ssh}\"\n${ColorN}" 
-          printf "${ColorR}Please ensure passwordless ssh remote access from local server to ${target_host}.\n${ColorN}" 
-      fi
-  fi
-done 12< ${server_list}
+main () {
+
+  while read -u12 target_host
+  do
+    if [ ! -z ${target_host} ]
+      then
+        remote_ssh="ssh -o StrictHostKeyChecking=no $target_host date >/dev/null"
+        ${remote_ssh}
+        if [ $? -eq 0 ] 
+          then
+            printf "${ColorC}\nDNS Verification on ${target_host} >>>>>>\n\n${ColorN}" 
+            remote_dns_record_check ${target_host}
+  	else
+            printf "${ColorR}Failed to execute \"${remote_ssh}\"\n${ColorN}" 
+            printf "${ColorR}Please ensure passwordless ssh remote access from local server to ${target_host}.\n${ColorN}" 
+        fi
+    fi
+  done 12< ${server_list}
+}
+
+main
