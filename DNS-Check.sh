@@ -17,7 +17,7 @@ ColorG='\033[0;32m' # green (success)
 ColorN='\033[0m' # Normal (reset)
 
 
-dns_record_check () {
+Forward_Reverse_record_check () {
  
   local target_server=$1
   local dns_server=$2
@@ -81,9 +81,7 @@ remote_dns_record_check () {
   do
     if [ ! -z ${dns_host} ] && [ ! -z ${dns_ip} ]
       then
-        #echo "dns_record_check ${target_host} ${dns_host} ${dns_ip}"
-
-        dns_record_check ${target_host} ${dns_host} ${dns_ip}
+        Forward_Reverse_record_check ${target_host} ${dns_host} ${dns_ip}
       else
 	printf "${ColorR}Please ensure input data in file (${dns_list}) have both hostname(${dns_host}) and ip(${dns_ip}).\n${ColorN}" 
     fi
