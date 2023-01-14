@@ -27,6 +27,7 @@ Sample input file:
 api-int.ocp4.example.com	192.168.9.5
 graphic.example.com		192.168.9.201
 helper.example.com		192.168.9.5
+api.ocp4.example.com		192.168.9.5
 ```
 
 **Prerequisite**
