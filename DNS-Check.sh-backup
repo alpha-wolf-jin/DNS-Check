@@ -7,14 +7,11 @@
 # helper.example.com	192.168.9.5
 
 #server_list=$1
-#dns_list=$2
+server_list=`cat $1 | awk -F"," '{print $2}'`
+dns_list=`cat $1 | awk -F"," '{print $3}'`
 
-server_list=`mktemp`
-dns_list=`mktemp`
-
-cat $1 | awk -F"," '{print $3}' | sort -u >${server_list}
-cat $1 | awk -F"," '{print $2,$3}' >${dns_list}
-
+echo ${server_list}
+echo ${dns_list}
 
 ColorR='\033[0;31m' # red (fail)
 ColorB='\033[0;34m' # blue (info)
@@ -35,6 +32,7 @@ Forward_Reverse_record_check () {
 
   mkfifo /tmp/mypipe 
 
+  printf "Forward DNS: ${dns_server}\t===>\t${dns_IP}\n"
   ssh -o StrictHostKeyChecking=no $target_server "dig $dns_server +noall +answer" | awk '{print $NF}' > /tmp/mypipe &
 
   while IFS= read return_ip
@@ -49,15 +47,14 @@ Forward_Reverse_record_check () {
 
   if ${forward_dns}
     then
-      printf "Forward DNS: ${dns_server}\t${ColorG}===>${ColorN}\t${dns_IP}\n"
-      #printf "Result: ${ColorG}Success\n${ColorN}"
+      printf "Result: ${ColorG}Success\n${ColorN}"
     else
-      printf "Forward DNS: ${dns_server}\t${ColorR}=X=>${ColorN}\t${dns_IP}\n"
-      #printf "Result: ${ColorR}Failure\n${ColorN}"
+      printf "Result: ${ColorR}Failure\n${ColorN}"
   fi
 
   #mkfifo /tmp/mypipe 
 
+  printf "Reverse DNS: ${dns_IP}\t===>\t${dns_server}\n"
   ssh -o StrictHostKeyChecking=no $1 "dig -x $3 +noall +answer" | awk '{print $NF}' > /tmp/mypipe &
 
   while IFS= read return_host
@@ -72,11 +69,9 @@ Forward_Reverse_record_check () {
 
   if ${reverse_dns}
     then
-      printf "Reverse DNS: ${dns_server}\t${ColorG}<===${ColorN}\t${dns_IP}\n"
-      #printf "Result: ${ColorG}Success\n${ColorN}"
+      printf "Result: ${ColorG}Success\n${ColorN}"
     else
-      printf "Reverse DNS: ${dns_server}\t${ColorR}<=X=${ColorN}\t${dns_IP}\n"
-      #printf "Result: ${ColorR}Failure\n${ColorN}"
+      printf "Result: ${ColorR}Failure\n${ColorN}"
   fi
 
   echo
@@ -105,7 +100,7 @@ main () {
   [ ! -f $dns_list ] && { printf "${ColorR}Error: $dns_list file not found\n${ColorN}"; exit 99; }
   while read -u12 target_host
   do
-    if [ ! -z ${target_host} ]
+    if [ ! -z "${target_host}" ]
       then
         remote_ssh="ssh -o StrictHostKeyChecking=no $target_host date >/dev/null"
         ${remote_ssh}
@@ -119,10 +114,6 @@ main () {
         fi
     fi
   done 12< ${server_list}
-
-  rm -f ${server_list}
-
-  rm -f ${dns_list}
 }
 
 main

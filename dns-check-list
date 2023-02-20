@@ -1,4 +1,4 @@
-api-int.ocp4.example.com	192.168.9.5
-graphic.example.com		192.168.9.201
-helper.example.com		192.168.9.5
-api.ocp4.example.com		192.168.9.5
+controller,api-int.ocp4.example.com,192.168.9.5,443
+controller,graphic.example.com,192.168.9.201,443
+controller,helper.example.com,192.168.9.5,443
+auto-hub,api.ocp4.example.com,192.168.9.5,443
